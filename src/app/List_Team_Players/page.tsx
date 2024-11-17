@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
 import { Trophy, Users } from 'lucide-react';
