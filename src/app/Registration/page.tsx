@@ -261,7 +261,6 @@ const GamingRegistrationForm = () => {
       const { error: insertError } = await supabase.from('users').insert({
         name: formData.name,
         phone_number: formData.mobile,
-        tournament_code: formData.tournamentCode,
         image_url: imageUrl,
       });
 
