@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
@@ -19,7 +19,7 @@ const SkeletonCard = () => (
   </div>
 );
 
-const ListTeamPlayers = () => {
+const ListTeamPlayersContent = () => {
   const searchParams = useSearchParams(); // Directly use useSearchParams
   const [teamName, setTeamName] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -156,4 +156,4 @@ const ListTeamPlayers = () => {
   );
 };
 
-export default ListTeamPlayers;
+export default ListTeamPlayersContent;
