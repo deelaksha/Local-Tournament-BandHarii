@@ -238,12 +238,7 @@ const updateScore = async (matchId: number, player: number, increment: boolean) 
               onChange={(e) => setEditingMatch({ ...editingMatch, team2: e.target.value })}
               options={teams.map((team) => team.team_name)}
             />
-            <FormSelect
-              label="Status"
-              value={editingMatch.status}
-              onChange={(e) => setEditingMatch({ ...editingMatch, status: e.target.value })}
-              options={statuses}
-            />
+             
             <div className="flex justify-end space-x-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
