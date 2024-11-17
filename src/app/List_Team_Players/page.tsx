@@ -1,4 +1,6 @@
-// pages/List_Team_Players.js
+// Add this at the top of the file
+'use client';  // This marks the file as a client component
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
