@@ -20,7 +20,7 @@ const SkeletonCard = () => (
 );
 
 const ListTeamPlayers = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Directly use useSearchParams
   const [teamName, setTeamName] = useState(null);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,61 +98,58 @@ const ListTeamPlayers = () => {
               <span>{players.length} Players</span>
             </div>
           </div>
-
           {/* Players Grid */}
-          <Suspense fallback={<div>Loading...</div>}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {loading ? (
-                // Skeleton loading state
-                [...Array(6)].map((_, index) => (
-                  <SkeletonCard key={`skeleton-${index}`} />
-                ))
-              ) : players.length === 0 ? (
-                <div className="col-span-full">
-                  <div className="bg-gray-800/50 rounded-xl p-8 text-center">
-                    <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 text-lg">
-                      No players found for this team
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {loading ? (
+              // Skeleton loading state
+              [...Array(6)].map((_, index) => (
+                <SkeletonCard key={`skeleton-${index}`} />
+              ))
+            ) : players.length === 0 ? (
+              <div className="col-span-full">
+                <div className="bg-gray-800/50 rounded-xl p-8 text-center">
+                  <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">
+                    No players found for this team
+                  </p>
                 </div>
-              ) : (
-                players.map((player) => (
-                  <div
-                    key={player.player_name}
-                    className="group bg-gray-800/50 hover:bg-gray-800 p-6 rounded-xl transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-900/20"
-                  >
-                    <div className="flex items-center space-x-4">
-                      {player.image_url ? (
-                        <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-gray-700 group-hover:ring-blue-500 transition-all duration-300">
-                          <Image
-                            src={player.image_url}
-                            alt={player.player_name}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center ring-2 ring-gray-600 group-hover:ring-blue-500 transition-all duration-300">
-                          <span className="text-2xl font-semibold text-gray-300">
-                            {player.player_name[0]}
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-xl text-white font-medium truncate">
-                          {player.player_name}
-                        </h2>
-                        <p className="text-sm text-gray-400 truncate">
-                          {player.team_name}
-                        </p>
+              </div>
+            ) : (
+              players.map((player) => (
+                <div
+                  key={player.player_name}
+                  className="group bg-gray-800/50 hover:bg-gray-800 p-6 rounded-xl transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-gray-900/20"
+                >
+                  <div className="flex items-center space-x-4">
+                    {player.image_url ? (
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-gray-700 group-hover:ring-blue-500 transition-all duration-300">
+                        <Image
+                          src={player.image_url}
+                          alt={player.player_name}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center ring-2 ring-gray-600 group-hover:ring-blue-500 transition-all duration-300">
+                        <span className="text-2xl font-semibold text-gray-300">
+                          {player.player_name[0]}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl text-white font-medium truncate">
+                        {player.player_name}
+                      </h2>
+                      <p className="text-sm text-gray-400 truncate">
+                        {player.team_name}
+                      </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </Suspense>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </>
