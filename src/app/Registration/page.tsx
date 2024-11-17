@@ -172,17 +172,30 @@ const GamingRegistrationForm = () => {
           if (!value.trim()) {
             return { isValid: false, message: 'Tournament code is required' };
           }
-          const { data } = await supabase
-            .from('tournament_codes')
-            .select('code')
-            .eq('code', value)
-            .single();
-          
-          return {
-            isValid: !!data,
-            message: data ? 'Valid tournament code' : 'Invalid tournament code'
-          };
+        
+          try {
+            // Query the tournament_code table for any matching codes
+            const { data, error } = await supabase
+              .from('tournament_code')
+              .select('code')
+              .eq('code', value);
+        
+            if (error) {
+              console.error('Error validating tournament code:', error);
+              return { isValid: false, message: 'Error validating tournament code' };
+            }
+        
+            // Check if any rows were returned
+            return {
+              isValid: data.length > 0, // True if at least one match is found
+              message: data.length > 0 ? 'Valid tournament code' : 'Invalid tournament code'
+            };
+          } catch (err) {
+            console.error('Unexpected error validating tournament code:', err);
+            return { isValid: false, message: 'Error validating tournament code' };
+          }
         }
+        
         default:
           return { isValid: null, message: '' };
       }
