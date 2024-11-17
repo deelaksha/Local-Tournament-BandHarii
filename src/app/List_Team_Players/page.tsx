@@ -25,7 +25,7 @@ const ListTeamPlayers = () => {
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Get team name from query params
+  // Get team name from query params (only client-side)
   useEffect(() => {
     const team = searchParams.get('team');
     if (team) {
