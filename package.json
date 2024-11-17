@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
+    "@tanstack/react-query": "^5.60.5",
     "framer-motion": "^11.11.17",
     "lucide-react": "^0.456.0",
     "next": "^15.0.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-query": "^3.39.3"
   },
   "devDependencies": {
     "@types/node": "^20",

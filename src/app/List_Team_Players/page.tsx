@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
@@ -19,8 +18,8 @@ const SkeletonCard = () => (
   </div>
 );
 
-const ListTeamPlayersContent = () => {
-  const searchParams = useSearchParams(); // Directly use useSearchParams
+const ListTeamPlayers = () => {
+  const searchParams = useSearchParams();
   const [teamName, setTeamName] = useState(null);
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +97,7 @@ const ListTeamPlayersContent = () => {
               <span>{players.length} Players</span>
             </div>
           </div>
+
           {/* Players Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {loading ? (
@@ -156,4 +156,10 @@ const ListTeamPlayersContent = () => {
   );
 };
 
-export default ListTeamPlayersContent;
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ListTeamPlayers />
+    </Suspense>
+  );
+}
