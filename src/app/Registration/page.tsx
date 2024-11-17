@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
-import { Camera, Gamepad2, Trophy, Loader2, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { Camera, Gamepad2, Trophy, Loader2, CheckCircle, X, AlertCircle} from 'lucide-react';
 import Navbar from '@/app/Header/page';
 
 // Component for loading button
@@ -362,12 +362,14 @@ const GamingRegistrationForm = () => {
                     />
                     <div className="flex gap-2">
                       <LoadingButton 
-                        loading={false}
-                        onClick={() => setStep(1)}
-                        className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white"
-                      >
-                        ← Back
+                      loading={false}
+                      onClick={() => setStep(1)}
+                      className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white"
+                        disabled={validation.tournamentCode.isChecking || !validation.tournamentCode.isValid} // Example condition
+                        >
+                          ← Back
                       </LoadingButton>
+
                       <LoadingButton 
                         loading={validation.mobile.isChecking || validation.tournamentCode.isChecking}
                         onClick={() => setStep(3)}
@@ -409,12 +411,14 @@ const GamingRegistrationForm = () => {
                     </div>
                     <div className="flex gap-2">
                       <LoadingButton
-                        loading={false}
-                        onClick={() => setStep(2)}
-                        className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white"
-                      >
-                        ← Back
-                      </LoadingButton>
+  loading={false}
+  onClick={() => setStep(2)}
+  className="w-1/2 bg-gray-600 hover:bg-gray-700 text-white"
+  disabled={false} // Add the disabled prop here
+>
+  ← Back
+</LoadingButton>
+
                       <LoadingButton
                         loading={loading}
                         onClick={handleSubmit}

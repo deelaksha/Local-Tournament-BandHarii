@@ -38,7 +38,7 @@ const SportsRegistrationCards = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const { data: fetchedData, error } = await supabase
-          .from<SportCategory>('sports')
+          .from('sports')
           .select('sports_name, sports_date');
 
         if (error) {

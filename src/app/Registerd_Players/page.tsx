@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from '../../../lib/supabaseClient';
 import Navbar from '@/app/Owner/Header/page';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, UserX } from 'lucide-react';
+
 
 interface UserData {
   image_url: string;
@@ -82,7 +83,7 @@ const UserSearchCards: React.FC = () => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from<UserData>('users')
+          .from('users')
           .select('name, image_url');
 
         if (error) {

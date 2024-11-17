@@ -97,13 +97,13 @@ const UserSearchCards: React.FC = () => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase
-          .from<UserData>('users')
+          .from('users') // Removed <UserData>
           .select('name, phone_number, image_url');
-
+      
         if (error) {
           setError('Error fetching users: ' + error.message);
         } else {
-          setUsers(data || []);
+          setUsers((data as UserData[]) || []); // Explicitly cast data
         }
       } catch (err) {
         setError('An unexpected error occurred while fetching users.');
@@ -111,6 +111,7 @@ const UserSearchCards: React.FC = () => {
       } finally {
         setIsLoading(false);
       }
+      
     };
 
     if (typeof window !== 'undefined') {
