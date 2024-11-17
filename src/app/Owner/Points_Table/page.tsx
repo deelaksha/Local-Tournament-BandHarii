@@ -42,18 +42,16 @@ const AdminDashboard = () => {
   const statuses = ['upcoming', 'live', 'completed'];
 
   // Fetch teams and matches from Supabase
-  useEffect(() => {
-    const fetchTeamsAndMatches = async () => {
+useEffect(() => {
+  const fetchTeamsAndMatches = async () => {
+    try {
       // Fetch teams
       const { data: teamsData, error: teamsError } = await supabase
         .from('teams')
         .select('team_name');
+      if (teamsError) throw teamsError;
 
-      if (teamsError) {
-        console.error('Error fetching teams:', teamsError);
-      } else {
-        setTeams(teamsData); // Set the teams data
-      }
+      setTeams(teamsData || []);
 
       // Fetch matches with joined data for team names
       const { data: matchesData, error: matchesError } = await supabase
@@ -69,16 +67,23 @@ const AdminDashboard = () => {
           teams2:team2 (team_name),
           sports_name
         `);
+      if (matchesError) throw matchesError;
 
-      if (matchesError) {
-        console.error('Error fetching matches:', matchesError);
-      } else {
-        setMatches(matchesData); // Set the matches data
-      }
-    };
+      // Transform the matches data to match the Match type
+      const transformedMatches = (matchesData || []).map((match: any) => ({
+        ...match,
+        teams1: match.teams1 ? match.teams1[0] : undefined, // Extract the first element or undefined
+        teams2: match.teams2 ? match.teams2[0] : undefined, // Extract the first element or undefined
+      }));
 
-    fetchTeamsAndMatches();
-  }, []);
+      setMatches(transformedMatches);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchTeamsAndMatches();
+}, []);
 
 const handleAddMatch = async () => {
   if (newMatch.team1 && newMatch.team2 && newMatch.team1 !== newMatch.team2 && sports_name) {
