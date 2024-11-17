@@ -1,7 +1,7 @@
-// Add this at the top of the file
-'use client';  // This marks the file as a client component
+'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation'; // If using search params for teamName
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
 import { Trophy, Users } from 'lucide-react';
@@ -19,57 +19,67 @@ const SkeletonCard = () => (
   </div>
 );
 
-const ListTeamPlayers = ({ teamName, initialPlayers }) => {
-  const [players, setPlayers] = useState(initialPlayers || []);
-  const [loading, setLoading] = useState(false);
+const ListTeamPlayers = () => {
+  const searchParams = useSearchParams();
+  const [teamName, setTeamName] = useState<string | null>(null);
+  const [players, setPlayers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Use effect to fetch players data if not passed via props
+  // Get team name from query params
   useEffect(() => {
-    if (!initialPlayers && teamName) {
-      const fetchPlayers = async () => {
-        setLoading(true);
-        try {
-          const { data: playersData, error: playersError } = await supabase
-            .from('players')
-            .select('player_name, team_name')
-            .eq('team_name', teamName);
-
-          if (playersError) {
-            console.error('Error fetching players:', playersError);
-            return;
-          }
-
-          const playersWithImages = await Promise.all(
-            playersData.map(async (player) => {
-              const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select('image_url')
-                .eq('name', player.player_name)
-                .single();
-
-              if (userError) {
-                console.error('Error fetching user image:', userError);
-                return player;
-              }
-
-              return {
-                ...player,
-                image_url: userData?.image_url,
-              };
-            })
-          );
-
-          setPlayers(playersWithImages);
-        } catch (error) {
-          console.error('Error fetching players:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchPlayers();
+    const team = searchParams.get('team');
+    if (team) {
+      setTeamName(team);
     }
-  }, [teamName, initialPlayers]);
+  }, [searchParams]);
+
+  // Fetch players when teamName changes
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      if (!teamName) return;
+
+      setLoading(true);
+      try {
+        const { data: playersData, error: playersError } = await supabase
+          .from('players')
+          .select('player_name, team_name')
+          .eq('team_name', teamName);
+
+        if (playersError) {
+          console.error('Error fetching players:', playersError);
+          return;
+        }
+
+        const playersWithImages = await Promise.all(
+          playersData.map(async (player) => {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('image_url')
+              .eq('name', player.player_name)
+              .single();
+
+            if (userError) {
+              console.error('Error fetching user image:', userError);
+              return player;
+            }
+
+            return {
+              ...player,
+              image_url: userData?.image_url,
+            };
+          })
+        );
+
+        setPlayers(playersWithImages);
+      } catch (error) {
+        console.error('Error fetching players:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, [teamName]);
 
   return (
     <>
@@ -149,4 +159,3 @@ const ListTeamPlayers = ({ teamName, initialPlayers }) => {
 };
 
 export default ListTeamPlayers;
-
