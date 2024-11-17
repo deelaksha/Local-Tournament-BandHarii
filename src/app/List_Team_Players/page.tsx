@@ -19,50 +19,57 @@ const SkeletonCard = () => (
   </div>
 );
 
-export async function getServerSideProps(context) {
-  const { team } = context.query; // Get the team name from the URL query
-
-  // Fetch players data from Supabase
-  const { data: playersData, error: playersError } = await supabase
-    .from('players')
-    .select('player_name, team_name')
-    .eq('team_name', team);
-
-  if (playersError) {
-    console.error('Error fetching players:', playersError);
-    return { props: { players: [], teamName: team || null } };
-  }
-
-  // Fetch user images for players
-  const playersWithImages = await Promise.all(
-    playersData.map(async (player) => {
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('image_url')
-        .eq('name', player.player_name)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user image:', userError);
-        return player;
-      }
-
-      return {
-        ...player,
-        image_url: userData?.image_url,
-      };
-    })
-  );
-
-  return { props: { players: playersWithImages, teamName: team || null } };
-}
-
-const ListTeamPlayers = ({ players, teamName }) => {
+const ListTeamPlayers = ({ teamName, initialPlayers }) => {
+  const [players, setPlayers] = useState(initialPlayers || []);
   const [loading, setLoading] = useState(false);
 
+  // Use effect to fetch players data if not passed via props
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    if (!initialPlayers && teamName) {
+      const fetchPlayers = async () => {
+        setLoading(true);
+        try {
+          const { data: playersData, error: playersError } = await supabase
+            .from('players')
+            .select('player_name, team_name')
+            .eq('team_name', teamName);
+
+          if (playersError) {
+            console.error('Error fetching players:', playersError);
+            return;
+          }
+
+          const playersWithImages = await Promise.all(
+            playersData.map(async (player) => {
+              const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('image_url')
+                .eq('name', player.player_name)
+                .single();
+
+              if (userError) {
+                console.error('Error fetching user image:', userError);
+                return player;
+              }
+
+              return {
+                ...player,
+                image_url: userData?.image_url,
+              };
+            })
+          );
+
+          setPlayers(playersWithImages);
+        } catch (error) {
+          console.error('Error fetching players:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchPlayers();
+    }
+  }, [teamName, initialPlayers]);
 
   return (
     <>
@@ -142,3 +149,4 @@ const ListTeamPlayers = ({ players, teamName }) => {
 };
 
 export default ListTeamPlayers;
+
