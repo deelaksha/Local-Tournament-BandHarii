@@ -1,7 +1,5 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+// pages/List_Team_Players.js
+import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import Image from 'next/image';
 import { Trophy, Users } from 'lucide-react';
@@ -19,47 +17,50 @@ const SkeletonCard = () => (
   </div>
 );
 
-const ListTeamPlayers = () => {
-  const searchParams = useSearchParams();
-  const [teamName, setTeamName] = useState<string | null>(null);
-  const [players, setPlayers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export async function getServerSideProps(context) {
+  const { team } = context.query; // Get the team name from the URL query
 
-  useEffect(() => {
-    const team = searchParams.get('team');
-    if (team) {
-      setTeamName(team);
-    }
-  }, [searchParams]);
+  // Fetch players data from Supabase
+  const { data: playersData, error: playersError } = await supabase
+    .from('players')
+    .select('player_name, team_name')
+    .eq('team_name', team);
 
-  useEffect(() => {
-    if (teamName) {
-      const fetchPlayers = async () => {
-        setLoading(true);
-        setError(null); // Reset error state
-        try {
-          const { data: playersData, error: playersError } = await supabase
-            .from('players')
-            .select('player_name, team_name, users(image_url)')
-            .eq('team_name', teamName);
+  if (playersError) {
+    console.error('Error fetching players:', playersError);
+    return { props: { players: [], teamName: team || null } };
+  }
 
-          if (playersError) {
-            throw new Error(playersError.message);
-          }
+  // Fetch user images for players
+  const playersWithImages = await Promise.all(
+    playersData.map(async (player) => {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('image_url')
+        .eq('name', player.player_name)
+        .single();
 
-          setPlayers(playersData);
-        } catch (err) {
-          console.error('Error fetching players:', err);
-          setError('Failed to load players.');
-        } finally {
-          setLoading(false);
-        }
+      if (userError) {
+        console.error('Error fetching user image:', userError);
+        return player;
+      }
+
+      return {
+        ...player,
+        image_url: userData?.image_url,
       };
+    })
+  );
 
-      fetchPlayers();
-    }
-  }, [teamName]);
+  return { props: { players: playersWithImages, teamName: team || null } };
+}
+
+const ListTeamPlayers = ({ players, teamName }) => {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(false);
+  }, []);
 
   return (
     <>
@@ -83,11 +84,10 @@ const ListTeamPlayers = () => {
           {/* Players Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {loading ? (
-              [...Array(6)].map((_, index) => <SkeletonCard key={index} />)
-            ) : error ? (
-              <div className="text-red-500 text-center col-span-full">
-                {error}
-              </div>
+              // Skeleton loading state
+              [...Array(6)].map((_, index) => (
+                <SkeletonCard key={`skeleton-${index}`} />
+              ))
             ) : players.length === 0 ? (
               <div className="col-span-full">
                 <div className="bg-gray-800/50 rounded-xl p-8 text-center">
