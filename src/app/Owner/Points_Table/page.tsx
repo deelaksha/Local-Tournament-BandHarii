@@ -1,7 +1,7 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Minus, Edit2, Trash2, Save, X } from 'lucide-react';
+'use client'
+import React, { useState, useEffect ,Suspense} from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Minus, Edit2, Trash2, Save, X, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../../lib/supabaseClient';  // Adjust path if necessary
 import Navbar from '@/app/Owner/Header/page';
 
@@ -11,122 +11,125 @@ type Team = {
 
 type Match = {
   match_id: number;
-  team1: string;
+  team1: string; // Assuming it's the team name or ID
   team2: string;
   team1_points: number;
   team2_points: number;
   status: 'upcoming' | 'live' | 'completed';
   sports_name: string;
-  teams1?: { team_name: string }; 
-  teams2?: { team_name: string }; 
+  teams1?: { team_name: string }; // Nested team1 info
+  teams2?: { team_name: string }; // Nested team2 info
 };
 
 const AdminDashboard = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  
   const [isAddingMatch, setIsAddingMatch] = useState(false);
+  const sports_name = new URLSearchParams(window.location.search).get('sport');
+
+
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+
   const [newMatch, setNewMatch] = useState({
     team1: '',
     team2: '',
     status: 'upcoming',
     team1_points: 0,
-    team2_points: 0,
+    team2_points: 0
   });
-
-  const [sportsName, setSportsName] = useState<string | null>(null); // Store sports_name
 
   const statuses = ['upcoming', 'live', 'completed'];
 
   // Fetch teams and matches from Supabase
-  useEffect(() => {
-    const fetchTeamsAndMatches = async () => {
-      try {
-        // Fetch teams
-        const { data: teamsData, error: teamsError } = await supabase
-          .from('teams')
-          .select('team_name');
-        if (teamsError) throw teamsError;
-        setTeams(teamsData || []);
+useEffect(() => {
+  const fetchTeamsAndMatches = async () => {
+    try {
+      // Fetch teams
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('team_name');
+      if (teamsError) throw teamsError;
 
-        // Fetch matches with joined data for team names
-        const { data: matchesData, error: matchesError } = await supabase
-          .from('matches')
-          .select(`
-            match_id,
-            team1,
-            team2,
-            team1_points,
-            team2_points,
-            status,
-            teams1:team1 (team_name),
-            teams2:team2 (team_name),
-            sports_name
-          `);
-        if (matchesError) throw matchesError;
+      setTeams(teamsData || []);
 
-        // Transform the matches data to match the Match type
-        const transformedMatches = (matchesData || []).map((match: any) => ({
-          ...match,
-          teams1: match.teams1 ? match.teams1[0] : undefined, // Extract the first element or undefined
-          teams2: match.teams2 ? match.teams2[0] : undefined, // Extract the first element or undefined
-        }));
-        setMatches(transformedMatches);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchTeamsAndMatches();
-  }, []);
+      // Fetch matches with joined data for team names
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select(`
+          match_id,
+          team1,
+          team2,
+          team1_points,
+          team2_points,
+          status,
+          teams1:team1 (team_name),
+          teams2:team2 (team_name),
+          sports_name
+        `);
+      if (matchesError) throw matchesError;
 
-  // Set sports_name once the component mounts (client-side)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      setSportsName(params.get('sport'));
-    }
-  }, []);
+      // Transform the matches data to match the Match type
+      const transformedMatches = (matchesData || []).map((match: any) => ({
+        ...match,
+        teams1: match.teams1 ? match.teams1[0] : undefined, // Extract the first element or undefined
+        teams2: match.teams2 ? match.teams2[0] : undefined, // Extract the first element or undefined
+      }));
 
-  // Handle adding a match
-  const handleAddMatch = async () => {
-    if (newMatch.team1 && newMatch.team2 && newMatch.team1 !== newMatch.team2 && sportsName) {
-      try {
-        const { data, error } = await supabase
-          .from('matches')
-          .insert([{
-            team1: newMatch.team1,
-            team2: newMatch.team2,
-            team1_points: newMatch.team1_points,
-            team2_points: newMatch.team2_points,
-            status: newMatch.status,
-            sports_name: sportsName,
-          }])
-          .select(); // Ensure it returns the inserted row
-
-        if (error) {
-          console.error('Error adding match:', error.message);
-        } else if (data) {
-          setMatches((prev) => [...prev, data[0]]);
-          setNewMatch({
-            team1: '',
-            team2: '',
-            status: 'upcoming',
-            team1_points: 0,
-            team2_points: 0,
-          });
-          setIsAddingMatch(false);
-          alert('Match added successfully');
-        }
-      } catch (error) {
-        console.error('Unexpected error:', error);
-      }
-    } else {
-      console.error('Please provide valid and distinct team1 and team2.');
+      setMatches(transformedMatches);
+    } catch (error) {
+      console.error('Error fetching data:', error);
     }
   };
 
-  // Handle updating a match
+  fetchTeamsAndMatches();
+}, []);
+
+const handleAddMatch = async () => {
+  if (newMatch.team1 && newMatch.team2 && newMatch.team1 !== newMatch.team2 && sports_name) {
+    try {
+      const { data, error } = await supabase
+        .from('matches')
+        .insert([{
+          team1: newMatch.team1,
+          team2: newMatch.team2,
+          team1_points: newMatch.team1_points,
+          team2_points: newMatch.team2_points,
+          status: newMatch.status,
+          sports_name: sports_name
+        }])
+        .select(); // Ensure it returns the inserted row
+
+      if (error) {
+        console.error('Error adding match:', error.message);
+      } else if (data) {
+        // Update the matches state with the new match
+        setMatches((prev) => [...prev, data[0]]);
+        // Reset new match form
+        setNewMatch({
+          team1: '',
+          team2: '',
+          status: 'upcoming',
+          team1_points: 0,
+          team2_points: 0,
+        });
+        setIsAddingMatch(false);
+        // Show success message
+        alert('Match added successfully');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+    }
+  } else {
+    console.error('Please provide valid and distinct team1 and team2.');
+  }
+};
+
+
+
+  // Update match
   const handleUpdateMatch = async (matchId: number) => {
+    // Ensure editingMatch has all required fields
     if (editingMatch && editingMatch.team1 && editingMatch.team2) {
       try {
         const { data, error } = await supabase
@@ -139,7 +142,7 @@ const AdminDashboard = () => {
             status: editingMatch.status,
           })
           .eq('match_id', matchId);
-
+  
         if (error) {
           console.error('Error updating match:', error.message, error.details, error.hint);
         } else {
@@ -158,8 +161,9 @@ const AdminDashboard = () => {
       console.error('Editing match is missing required fields.');
     }
   };
+  
 
-  // Handle deleting a match
+  // Delete match
   const handleDeleteMatch = async (matchId: number) => {
     const { error } = await supabase
       .from('matches')
@@ -170,44 +174,46 @@ const AdminDashboard = () => {
       console.error('Error deleting match:', error);
     } else {
       setMatches((prev) => prev.filter((match) => match.match_id !== matchId));
+      // Show success message
       alert('Match deleted successfully');
     }
   };
 
   // Update score
-  const updateScore = async (matchId: number, player: number, increment: boolean) => {
-    const updatedMatches = matches.map((match: Match) => {
-      if (match.match_id === matchId && match.status === 'live') {
-        const scoreKey = player === 1 ? 'team1_points' : 'team2_points';
-        const newScore = Math.max(0, match[scoreKey] + (increment ? 1 : -1));
+// Update score function
+const updateScore = async (matchId: number, player: number, increment: boolean) => {
+  const updatedMatches = matches.map((match: Match) => {
+    if (match.match_id === matchId && match.status === 'live') {
+      const scoreKey = player === 1 ? 'team1_points' : 'team2_points';
+      const newScore = Math.max(0, match[scoreKey] + (increment ? 1 : -1));
 
-        return { ...match, [scoreKey]: newScore };
-      }
-      return match;
-    });
-
-    setMatches(updatedMatches);
-    const scoreKey = player === 1 ? 'team1_points' : 'team2_points';
-    const newScore = updatedMatches.find(match => match.match_id === matchId)?.[scoreKey];
-
-    if (newScore !== undefined) {
-      try {
-        const { error } = await supabase
-          .from('matches')
-          .update({ [scoreKey]: newScore })
-          .eq('match_id', matchId);
-
-        if (error) {
-          console.error('Error updating score in the database:', error.message);
-        }
-      } catch (error) {
-        console.error('Unexpected error during score update:', error);
-      }
+      return { ...match, [scoreKey]: newScore };
     }
-  };
+    return match;
+  });
 
-  // Match Card Component
-  const MatchCard = ({ match }: { match: Match }) => {
+  setMatches(updatedMatches);
+  const scoreKey = player === 1 ? 'team1_points' : 'team2_points';
+  const newScore = updatedMatches.find(match => match.match_id === matchId)?.[scoreKey];
+
+  if (newScore !== undefined) {
+    try {
+      const { error } = await supabase
+        .from('matches')
+        .update({ [scoreKey]: newScore })
+        .eq('match_id', matchId);
+
+      if (error) {
+        console.error('Error updating score in the database:', error.message);
+      }
+    } catch (error) {
+      console.error('Unexpected error during score update:', error);
+    }
+  }
+};
+
+
+  const MatchCard = ({ match }: { match: Match}) => {
     const isEditing = editingMatch?.match_id === match.match_id;
 
     return (
@@ -220,60 +226,25 @@ const AdminDashboard = () => {
       >
         {isEditing ? (
           <div className="space-y-4">
-            <div>
-              <label htmlFor="team1" className="text-white">Team 1</label>
-              <select
-                id="team1"
-                value={editingMatch.team1}
-                onChange={(e) => setEditingMatch({ ...editingMatch, team1: e.target.value })}
-                className="bg-gray-700 text-white w-full p-2 rounded"
-              >
-                {teams.map((team) => (
-                  <option key={team.team_name} value={team.team_name}>
-                    {team.team_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="team2" className="text-white">Team 2</label>
-              <select
-                id="team2"
-                value={editingMatch.team2}
-                onChange={(e) => setEditingMatch({ ...editingMatch, team2: e.target.value })}
-                className="bg-gray-700 text-white w-full p-2 rounded"
-              >
-                {teams.map((team) => (
-                  <option key={team.team_name} value={team.team_name}>
-                    {team.team_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="status" className="text-white">Match Status</label>
-              <select
-                id="status"
-                value={editingMatch.status}
-                onChange={(e) => setEditingMatch({ ...editingMatch, status: e.target.value })}
-                className="bg-gray-700 text-white w-full p-2 rounded"
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex space-x-4">
+            <FormSelect
+              label="Team 1"
+              value={editingMatch.team1}
+              onChange={(e) => setEditingMatch({ ...editingMatch, team1: e.target.value })}
+              options={teams.map((team) => team.team_name)}
+            />
+            <FormSelect
+              label="Team 2"
+              value={editingMatch.team2}
+              onChange={(e) => setEditingMatch({ ...editingMatch, team2: e.target.value })}
+              options={teams.map((team) => team.team_name)}
+            />
+             
+            <div className="flex justify-end space-x-2">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleUpdateMatch(match.match_id)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center"
               >
                 <Save className="w-4 h-4 mr-2" /> Save
               </motion.button>
@@ -289,56 +260,84 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <>
-            <div className="text-xl font-bold">{match.teams1?.team_name} vs {match.teams2?.team_name}</div>
-            <div className="flex justify-between mt-2 text-gray-400">
-              <span>{match.status}</span>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => updateScore(match.match_id, 1, true)}
-                  className="text-green-500"
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center">
+                <span className="text-blue-400 font-bold text-lg">
+                  {match.teams1?.team_name || 'Team 1'}
+                </span>
+                <span className="text-gray-500 mx-4">vs</span>
+                <span className="text-red-400 font-bold text-lg">
+                  {match.teams2?.team_name || 'Team 2'}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setEditingMatch(match)}
+                  className="p-2 bg-blue-600 rounded-lg"
                 >
-                  <Plus className="w-5 h-5" />
-                </button>
-                <span>{match.team1_points}</span>
-                <button
-                  onClick={() => updateScore(match.match_id, 1, false)}
-                  className="text-red-500"
+                  <Edit2 className="w-4 h-4" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleDeleteMatch(match.match_id)}
+                  className="p-2 bg-red-600 rounded-lg"
                 >
-                  <Minus className="w-5 h-5" />
-                </button>
-                <span> - </span>
-                <button
-                  onClick={() => updateScore(match.match_id, 2, true)}
-                  className="text-green-500"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-                <span>{match.team2_points}</span>
-                <button
-                  onClick={() => updateScore(match.match_id, 2, false)}
-                  className="text-red-500"
-                >
-                  <Minus className="w-5 h-5" />
-                </button>
+                  <Trash2 className="w-4 h-4" />
+                </motion.button>
               </div>
             </div>
-            <div className="flex justify-end mt-2 space-x-2">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setEditingMatch(match)}
-                className="text-blue-500"
-              >
-                <Edit2 className="w-5 h-5" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleDeleteMatch(match.match_id)}
-                className="text-red-500"
-              >
-                <Trash2 className="w-5 h-5" />
-              </motion.button>
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-xl font-bold">{match.team1_points} - {match.team2_points}</div>
+              <div className="text-lg font-semibold">{sports_name}</div>
+              {match.status === 'live' && (
+                <div className="flex items-center space-x-2">
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => updateScore(match.match_id, 1, true)}
+                    disabled={match.status !== 'live'}
+                    className="p-1 bg-gray-700 rounded-full disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.button>
+                  <span className="text-2xl font-bold text-white w-8 text-center">
+                    {match.team1_points}
+                  </span>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => updateScore(match.match_id, 1, false)}
+                    disabled={match.status !== 'live'}
+                    className="p-1 bg-gray-700 rounded-full disabled:opacity-50"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => updateScore(match.match_id, 2, true)}
+                    disabled={match.status !== 'live'}
+                    className="p-1 bg-gray-700 rounded-full disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.button>
+                  <span className="text-2xl font-bold text-white w-8 text-center">
+                    {match.team2_points}
+                  </span>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => updateScore(match.match_id, 2, false)}
+                    disabled={match.status !== 'live'}
+                    className="p-1 bg-gray-700 rounded-full disabled:opacity-50"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -346,19 +345,100 @@ const AdminDashboard = () => {
     );
   };
 
+  const FormSelect = ({ label, value, onChange, options }: { label: string, value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void, options: string[] }) => (
+    <div className="flex flex-col">
+      <label className="text-gray-400 text-sm">{label}</label>
+      <select
+        value={value}
+        onChange={onChange}
+        className="p-2 bg-gray-800 border border-gray-700 rounded-lg w-full"
+      >
+        <option value="">Select {label}</option>
+        {options && options.length > 0 ? (
+          options.map((option, idx) => (
+            <option key={idx} value={option}>
+              {option}
+            </option>
+          ))
+        ) : (
+          <option value="">No teams available</option>
+        )}
+      </select>
+    </div>
+  );
+
   return (
     <>
-      <Navbar />
-      <div className="p-4">
-        <h1 className="text-3xl text-white mb-4">Admin Dashboard</h1>
+    <Navbar/>
+    <div className="p-6 bg-gray-900 min-h-screen text-white">
+      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+
+      {isAddingMatch ? (
         <div className="space-y-4">
-          {matches.map((match) => (
+          <FormSelect
+            label="Team 1"
+            value={newMatch.team1}
+            onChange={e => setNewMatch({ ...newMatch, team1: e.target.value })}
+            options={teams.map((team) => team.team_name)}
+          />
+          <FormSelect
+            label="Team 2"
+            value={newMatch.team2}
+            onChange={e => setNewMatch({ ...newMatch, team2: e.target.value })}
+            options={teams.map((team) => team.team_name)}
+          />
+          <FormSelect
+            label="Status"
+            value={newMatch.status}
+            onChange={e => setNewMatch({ ...newMatch, status: e.target.value })}
+            options={statuses}
+          />
+          <div className="flex justify-end space-x-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAddMatch}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" /> Add Match
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsAddingMatch(false)}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center"
+            >
+              <X className="w-4 h-4 mr-2" /> Cancel
+            </motion.button>
+          </div>
+        </div>
+      ) : (
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setIsAddingMatch(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+        >
+          <Plus className="w-4 h-4 mr-2" /> Add Match
+        </motion.button>
+      )}
+
+      <div className="mt-6">
+        <AnimatePresence>
+          {matches.map(match => (
             <MatchCard key={match.match_id} match={match} />
           ))}
-        </div>
+        </AnimatePresence>
       </div>
+    </div>
     </>
   );
 };
 
-export default AdminDashboard;
+export default function PageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}> {/* Wrap the ManageTeamsPage with Suspense */}
+      <AdminDashboard />
+    </Suspense>
+  );
+}
