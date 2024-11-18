@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,Suspense} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, Edit2, Trash2, Save, X, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../../lib/supabaseClient';  // Adjust path if necessary
@@ -435,4 +435,10 @@ const updateScore = async (matchId: number, player: number, increment: boolean) 
   );
 };
 
-export default AdminDashboard;
+export default function PageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}> {/* Wrap the ManageTeamsPage with Suspense */}
+      <AdminDashboard />
+    </Suspense>
+  );
+}
