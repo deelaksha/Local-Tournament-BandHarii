@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState ,Suspense} from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../../../lib/supabaseClient';
 
@@ -132,5 +132,11 @@ const ManageTeamsPage = () => {
     </div>
   );
 };
+const PageWrapper = () => (
+  <Suspense fallback={<p>Loading...</p>}>
+    <ManageTeamsPage />
+  </Suspense>
+);
 
-export default ManageTeamsPage;
+export default PageWrapper;
+

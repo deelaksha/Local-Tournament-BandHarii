@@ -1,6 +1,6 @@
 'use client';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState ,Suspense} from 'react';
 import { supabase } from '../../../lib/supabaseClient';
 import { Trophy, ChevronRight, Users, Loader2 } from 'lucide-react';
 import Navbar from '../Header/page';
@@ -146,5 +146,10 @@ const TeamList = () => {
     </>
   );
 };
+const PageWrapper = () => (
+  <Suspense fallback={<p>Loading...</p>}>
+    <TeamList />
+  </Suspense>
+);
 
-export default  TeamList;
+export default  PageWrapper;
