@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect ,Suspense} from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Minus, Edit2, Trash2, Save, X, CheckCircle } from 'lucide-react';
 import { supabase } from '../../../../lib/supabaseClient';  // Adjust path if necessary
@@ -26,9 +26,8 @@ const AdminDashboard = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   
   const [isAddingMatch, setIsAddingMatch] = useState(false);
-  const sports_name = new URLSearchParams(window.location.search).get('sport');
-
-
+  
+  const [sportsName, setSportsName] = useState<string | null>(null); // Declare state for sports_name
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
 
   const [newMatch, setNewMatch] = useState({
@@ -41,52 +40,59 @@ const AdminDashboard = () => {
 
   const statuses = ['upcoming', 'live', 'completed'];
 
-  // Fetch teams and matches from Supabase
-useEffect(() => {
-  const fetchTeamsAndMatches = async () => {
-    try {
-      // Fetch teams
-      const { data: teamsData, error: teamsError } = await supabase
-        .from('teams')
-        .select('team_name');
-      if (teamsError) throw teamsError;
-
-      setTeams(teamsData || []);
-
-      // Fetch matches with joined data for team names
-      const { data: matchesData, error: matchesError } = await supabase
-        .from('matches')
-        .select(`
-          match_id,
-          team1,
-          team2,
-          team1_points,
-          team2_points,
-          status,
-          teams1:team1 (team_name),
-          teams2:team2 (team_name),
-          sports_name
-        `);
-      if (matchesError) throw matchesError;
-
-      // Transform the matches data to match the Match type
-      const transformedMatches = (matchesData || []).map((match: any) => ({
-        ...match,
-        teams1: match.teams1 ? match.teams1[0] : undefined, // Extract the first element or undefined
-        teams2: match.teams2 ? match.teams2[0] : undefined, // Extract the first element or undefined
-      }));
-
-      setMatches(transformedMatches);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+  // Fetch sports_name from the URL only on the client side
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setSportsName(params.get('sport'));
     }
-  };
+  }, []); // Empty dependency array to run only once after mount
 
-  fetchTeamsAndMatches();
-}, []);
+  // Fetch teams and matches from Supabase
+  useEffect(() => {
+    const fetchTeamsAndMatches = async () => {
+      try {
+        // Fetch teams
+        const { data: teamsData, error: teamsError } = await supabase
+          .from('teams')
+          .select('team_name');
+        if (teamsError) throw teamsError;
 
+        setTeams(teamsData || []);
+
+        // Fetch matches with joined data for team names
+        const { data: matchesData, error: matchesError } = await supabase
+          .from('matches')
+          .select(`
+            match_id,
+            team1,
+            team2,
+            team1_points,
+            team2_points,
+            status,
+            teams1:team1 (team_name),
+            teams2:team2 (team_name),
+            sports_name
+          `);
+        if (matchesError) throw matchesError;
+
+        // Transform the matches data to match the Match type
+        const transformedMatches = (matchesData || []).map((match: any) => ({
+          ...match,
+          teams1: match.teams1 ? match.teams1[0] : undefined, // Extract the first element or undefined
+          teams2: match.teams2 ? match.teams2[0] : undefined, // Extract the first element or undefined
+        }));
+
+        setMatches(transformedMatches);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchTeamsAndMatches();
+  }, []);
 const handleAddMatch = async () => {
-  if (newMatch.team1 && newMatch.team2 && newMatch.team1 !== newMatch.team2 && sports_name) {
+  if (newMatch.team1 && newMatch.team2 && newMatch.team1 !== newMatch.team2 && sportsName) {
     try {
       const { data, error } = await supabase
         .from('matches')
@@ -96,7 +102,7 @@ const handleAddMatch = async () => {
           team1_points: newMatch.team1_points,
           team2_points: newMatch.team2_points,
           status: newMatch.status,
-          sports_name: sports_name
+          sports_name: sportsName
         }])
         .select(); // Ensure it returns the inserted row
 
@@ -291,7 +297,7 @@ const updateScore = async (matchId: number, player: number, increment: boolean) 
             </div>
             <div className="flex items-center justify-between mt-4">
               <div className="text-xl font-bold">{match.team1_points} - {match.team2_points}</div>
-              <div className="text-lg font-semibold">{sports_name}</div>
+              <div className="text-lg font-semibold">{sportsName}</div>
               {match.status === 'live' && (
                 <div className="flex items-center space-x-2">
                   <motion.button
