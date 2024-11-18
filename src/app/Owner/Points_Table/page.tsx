@@ -375,70 +375,111 @@ const updateScore = async (matchId: number, player: number, increment: boolean) 
 
   return (
     <>
-    <Navbar/>
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-
-      {isAddingMatch ? (
-        <div className="space-y-4">
-          <FormSelect
-            label="Team 1"
-            value={newMatch.team1}
-            onChange={e => setNewMatch({ ...newMatch, team1: e.target.value })}
-            options={teams.map((team) => team.team_name)}
-          />
-          <FormSelect
-            label="Team 2"
-            value={newMatch.team2}
-            onChange={e => setNewMatch({ ...newMatch, team2: e.target.value })}
-            options={teams.map((team) => team.team_name)}
-          />
-          <FormSelect
-            label="Status"
-            value={newMatch.status}
-            onChange={e => setNewMatch({ ...newMatch, status: e.target.value })}
-            options={statuses}
-          />
-          <div className="flex justify-end space-x-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleAddMatch}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" /> Add Match
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsAddingMatch(false)}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center"
-            >
-              <X className="w-4 h-4 mr-2" /> Cancel
-            </motion.button>
+      <Navbar />
+      <div className="p-6 bg-gray-900 min-h-screen text-white">
+        <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+  
+        {/* Check if sportsName is available before rendering */}
+        {sportsName ? (
+          <div className="mt-6">
+            {/* Render matches */}
+            <AnimatePresence>
+              {matches.map((match) => (
+                <motion.div
+                  key={match.match_id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <MatchCard match={match} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        </div>
-      ) : (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsAddingMatch(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
-        >
-          <Plus className="w-4 h-4 mr-2" /> Add Match
-        </motion.button>
-      )}
-
-      <div className="mt-6">
-        <AnimatePresence>
-          {matches.map(match => (
-            <MatchCard key={match.match_id} match={match} />
-          ))}
-        </AnimatePresence>
+        ) : (
+          <div className="text-red-500">No sport selected in the URL</div>
+        )}
+  
+        {/* Add new match form */}
+        {isAddingMatch && (
+          <div className="mt-6">
+            <h2 className="text-xl font-semibold mb-4">Add New Match</h2>
+            <form onSubmit={handleAddMatch} className="space-y-4">
+              <div>
+                <label htmlFor="team1" className="block text-sm">Team 1</label>
+                <select
+                  id="team1"
+                  value={newMatch.team1}
+                  onChange={(e) => setNewMatch({ ...newMatch, team1: e.target.value })}
+                  className="w-full bg-gray-800 text-white py-2 px-4 rounded"
+                  required
+                >
+                  <option value="">Select Team 1</option>
+                  {teams.map((team, index) => (
+                    <option key={index} value={team.team_name}>
+                      {team.team_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+  
+              <div>
+                <label htmlFor="team2" className="block text-sm">Team 2</label>
+                <select
+                  id="team2"
+                  value={newMatch.team2}
+                  onChange={(e) => setNewMatch({ ...newMatch, team2: e.target.value })}
+                  className="w-full bg-gray-800 text-white py-2 px-4 rounded"
+                  required
+                >
+                  <option value="">Select Team 2</option>
+                  {teams.map((team, index) => (
+                    <option key={index} value={team.team_name}>
+                      {team.team_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+  
+              <div>
+                <label htmlFor="status" className="block text-sm">Match Status</label>
+                <select
+                  id="status"
+                  value={newMatch.status}
+                  onChange={(e) => setNewMatch({ ...newMatch, status: e.target.value })}
+                  className="w-full bg-gray-800 text-white py-2 px-4 rounded"
+                  required
+                >
+                  {statuses.map((status, index) => (
+                    <option key={index} value={status}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+  
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setIsAddingMatch(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-green-600 text-white rounded"
+                >
+                  Add Match
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
       </div>
-    </div>
     </>
   );
+  
 };
 
 export default function PageWrapper() {
