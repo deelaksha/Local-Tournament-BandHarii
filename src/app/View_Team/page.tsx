@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../../lib/supabaseClient';
-import Navbar from '@/app/Owner/Header/page';
+import Navbar from '@/app/Header/page';
 
 type Team = {
   team_name: string;

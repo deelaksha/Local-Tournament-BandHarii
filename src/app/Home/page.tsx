@@ -156,11 +156,11 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative max-w-7xl mx-auto text-center">
           <h1 className="text-6xl font-bold text-white mb-6">
-            Welcome to Bengaluru Sports
+            Welcome to Boodhimutlu Sports (BWS)
           </h1>
           <p className="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-            Join the most exciting sports tournaments in Bengaluru. Compete with the best teams and showcase your talent.
-          </p>
+         Boodhimutlu Warriors Fight For Last Movement         
+</p>
           <div className="flex justify-center gap-4">
             <button
               onClick={handleRegisterForSportsClick}
