@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { supabase } from '../../../lib/supabaseClient';
-import Navbar from '@/app/Owner/Header/page';
+import Navbar from '@/app/Header/page';
 import { Loader2, Search, UserX } from 'lucide-react';
 
 
